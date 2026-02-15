@@ -1,0 +1,1770 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aviary Explorer - Discover 50 Amazing Birds</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #0f766e;
+            --secondary: #f59e0b;
+            --accent: #ec4899;
+        }
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #0f172a;
+            color: #e2e8f0;
+            overflow-x: hidden;
+        }
+        
+        h1, h2, h3 {
+            font-family: 'Playfair Display', serif;
+        }
+        
+        .bird-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f766e 100%);
+            overflow: hidden;
+        }
+        
+        .floating-feather {
+            position: absolute;
+            opacity: 0.1;
+            animation: float 20s infinite ease-in-out;
+            font-size: 2rem;
+            color: white;
+        }
+        
+        @keyframes float {
+            0%, 100% { transform: translateY(100vh) rotate(0deg); opacity: 0; }
+            10% { opacity: 0.1; }
+            90% { opacity: 0.1; }
+            100% { transform: translateY(-100vh) rotate(360deg); opacity: 0; }
+        }
+        
+        .glass-card {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.3s ease;
+        }
+        
+        .glass-card:hover {
+            transform: translateY(-10px);
+            background: rgba(255, 255, 255, 0.1);
+            border-color: rgba(255, 255, 255, 0.2);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+        }
+        
+        .bird-card {
+            position: relative;
+            overflow: hidden;
+            border-radius: 20px;
+        }
+        
+        .bird-card img {
+            transition: transform 0.5s ease;
+        }
+        
+        .bird-card:hover img {
+            transform: scale(1.1);
+        }
+        
+        .bird-overlay {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: linear-gradient(to top, rgba(0,0,0,0.9), transparent);
+            padding: 2rem 1.5rem 1.5rem;
+            transform: translateY(20px);
+            transition: transform 0.3s ease;
+        }
+        
+        .bird-card:hover .bird-overlay {
+            transform: translateY(0);
+        }
+        
+        .sound-wave {
+            display: flex;
+            align-items: center;
+            gap: 3px;
+            height: 20px;
+        }
+        
+        .wave-bar {
+            width: 3px;
+            background: var(--secondary);
+            border-radius: 3px;
+            animation: wave 1s ease-in-out infinite;
+        }
+        
+        .wave-bar:nth-child(1) { height: 40%; animation-delay: 0s; }
+        .wave-bar:nth-child(2) { height: 70%; animation-delay: 0.1s; }
+        .wave-bar:nth-child(3) { height: 100%; animation-delay: 0.2s; }
+        .wave-bar:nth-child(4) { height: 70%; animation-delay: 0.3s; }
+        .wave-bar:nth-child(5) { height: 40%; animation-delay: 0.4s; }
+        
+        @keyframes wave {
+            0%, 100% { transform: scaleY(0.5); }
+            50% { transform: scaleY(1); }
+        }
+        
+        .nav-blur {
+            background: rgba(15, 23, 42, 0.8);
+            backdrop-filter: blur(20px);
+        }
+        
+        ::-webkit-scrollbar {
+            width: 10px;
+        }
+        
+        ::-webkit-scrollbar-track {
+            background: #0f172a;
+        }
+        
+        ::-webkit-scrollbar-thumb {
+            background: var(--primary);
+            border-radius: 5px;
+        }
+        
+        .search-input {
+            background: rgba(255,255,255,0.05);
+            border: 2px solid rgba(255,255,255,0.1);
+            transition: all 0.3s;
+        }
+        
+        .search-input:focus {
+            border-color: var(--primary);
+            background: rgba(255,255,255,0.1);
+            outline: none;
+        }
+        
+        .filter-tag {
+            cursor: pointer;
+            transition: all 0.3s;
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+        
+        .filter-tag.active {
+            background: var(--primary);
+            border-color: var(--primary);
+            color: white;
+        }
+        
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.9);
+            z-index: 1000;
+            overflow-y: auto;
+        }
+        
+        .modal.active {
+            display: flex;
+            animation: fadeIn 0.3s;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        .modal-content {
+            background: linear-gradient(135deg, #1e293b, #0f172a);
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        .audio-btn {
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .audio-btn::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            background: rgba(245, 158, 11, 0.3);
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            transition: width 0.6s, height 0.6s;
+        }
+        
+        .audio-btn.playing::after {
+            width: 200%;
+            height: 200%;
+            opacity: 0;
+            transition: width 0.6s, height 0.6s, opacity 0.6s;
+        }
+        
+        .stat-number {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-weight: 800;
+        }
+        
+        .hero-parallax {
+            transform: translateZ(0);
+            will-change: transform;
+        }
+        
+        .play-pulse {
+            animation: pulse-ring 2s cubic-bezier(0.215, 0.61, 0.355, 1) infinite;
+        }
+        
+        @keyframes pulse-ring {
+            0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.7); }
+            70% { transform: scale(1); box-shadow: 0 0 0 20px rgba(245, 158, 11, 0); }
+            100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(245, 158, 11, 0); }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Animated Background -->
+    <div class="bird-bg" id="birdBg"></div>
+
+    <!-- Navigation -->
+    <nav class="nav-blur fixed w-full z-50 border-b border-white/10">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-20">
+                <div class="flex items-center space-x-3 cursor-pointer" onclick="window.scrollTo(0,0)">
+                    <i class="fas fa-dove text-3xl text-teal-400"></i>
+                    <span class="text-2xl font-bold tracking-tight">Aviary<span class="text-teal-400">Explorer</span></span>
+                </div>
+                <div class="hidden md:flex space-x-8">
+                    <a href="#home" class="hover:text-teal-400 transition" onclick="window.scrollTo(0,0)">Home</a>
+                    <a href="#gallery" class="hover:text-teal-400 transition" onclick="document.getElementById('gallery').scrollIntoView({behavior: 'smooth'})">Gallery</a>
+                    <a href="#families" class="hover:text-teal-400 transition" onclick="document.getElementById('families').scrollIntoView({behavior: 'smooth'})">Families</a>
+                    <a href="#conservation" class="hover:text-teal-400 transition" onclick="document.getElementById('conservation').scrollIntoView({behavior: 'smooth'})">Conservation</a>
+                </div>
+                <button onclick="toggleSearch()" class="p-2 hover:bg-white/10 rounded-full transition">
+                    <i class="fas fa-search text-xl"></i>
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Search Overlay -->
+    <div id="searchOverlay" class="fixed inset-0 bg-black/95 z-40 hidden flex items-center justify-center p-4">
+        <div class="w-full max-w-2xl">
+            <input type="text" id="searchInput" placeholder="Search birds by name, family, or region..." 
+                   class="w-full text-3xl bg-transparent border-b-2 border-white/30 focus:border-teal-400 outline-none py-4 text-white placeholder-white/30"
+                   onkeyup="searchBirds(this.value)">
+            <div id="searchResults" class="mt-8 grid grid-cols-1 md:grid-cols-2 gap-4 max-h-96 overflow-y-auto"></div>
+        </div>
+        <button onclick="toggleSearch()" class="absolute top-8 right-8 text-4xl hover:text-teal-400 transition">&times;</button>
+    </div>
+
+    <!-- Hero Section -->
+    <section id="home" class="relative min-h-screen flex items-center justify-center pt-20 overflow-hidden">
+        <div class="absolute inset-0 opacity-30">
+            <div class="absolute top-20 left-10 w-72 h-72 bg-teal-500 rounded-full mix-blend-multiply filter blur-3xl animate-pulse"></div>
+            <div class="absolute bottom-20 right-10 w-96 h-96 bg-amber-500 rounded-full mix-blend-multiply filter blur-3xl animate-pulse delay-1000"></div>
+        </div>
+        
+        <div class="relative z-10 text-center px-4 max-w-5xl mx-auto hero-parallax">
+            <div class="inline-block mb-6 px-4 py-2 rounded-full bg-white/10 border border-white/20 text-sm font-semibold tracking-wider uppercase">
+                <i class="fas fa-feather-alt mr-2"></i> Discover 50 Amazing Species
+            </div>
+            <h1 class="text-6xl md:text-8xl font-bold mb-6 leading-tight">
+                Wings of <span class="text-transparent bg-clip-text bg-gradient-to-r from-teal-400 to-amber-400">Wonder</span>
+            </h1>
+            <p class="text-xl md:text-2xl text-gray-300 mb-12 max-w-2xl mx-auto leading-relaxed">
+                Explore the fascinating world of birds. From the tiny hummingbird to the majestic eagle, discover their songs, habitats, and incredible journeys.
+            </p>
+            <div class="flex flex-col sm:flex-row gap-4 justify-center">
+                <button onclick="scrollToGallery()" class="px-8 py-4 bg-teal-600 hover:bg-teal-500 rounded-full font-semibold transition transform hover:scale-105 flex items-center justify-center gap-2">
+                    <i class="fas fa-binoculars"></i> Explore Birds
+                </button>
+                <button onclick="playRandomCall()" class="px-8 py-4 bg-white/10 hover:bg-white/20 border border-white/30 rounded-full font-semibold transition transform hover:scale-105 flex items-center justify-center gap-2">
+                    <i class="fas fa-play"></i> Hear a Random Call
+                </button>
+            </div>
+            
+            <!-- Stats -->
+            <div class="mt-16 grid grid-cols-2 md:grid-cols-4 gap-8 max-w-3xl mx-auto">
+                <div class="text-center">
+                    <div class="stat-number text-4xl mb-2" data-target="50">0</div>
+                    <div class="text-sm text-gray-400 uppercase tracking-wider">Species</div>
+                </div>
+                <div class="text-center">
+                    <div class="stat-number text-4xl mb-2" data-target="12">0</div>
+                    <div class="text-sm text-gray-400 uppercase tracking-wider">Families</div>
+                </div>
+                <div class="text-center">
+                    <div class="stat-number text-4xl mb-2" data-target="195">0</div>
+                    <div class="text-sm text-gray-400 uppercase tracking-wider">Countries</div>
+                </div>
+                <div class="text-center">
+                    <div class="stat-number text-4xl mb-2" data-target="7">0</div>
+                    <div class="text-sm text-gray-400 uppercase tracking-wider">Continents</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="absolute bottom-10 left-1/2 transform -translate-x-1/2 animate-bounce cursor-pointer" onclick="scrollToGallery()">
+            <i class="fas fa-chevron-down text-2xl text-white/50"></i>
+        </div>
+    </section>
+
+    <!-- Featured Categories -->
+    <section id="families" class="py-20 px-4">
+        <div class="max-w-7xl mx-auto">
+            <div class="text-center mb-16">
+                <h2 class="text-4xl md:text-5xl font-bold mb-4">Bird Families</h2>
+                <p class="text-gray-400 max-w-2xl mx-auto">Browse birds by their taxonomic families.</p>
+            </div>
+            
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
+                <div class="glass-card rounded-2xl p-6 text-center cursor-pointer hover:bg-white/10 transition group" onclick="filterByFamily('Raptors')">
+                    <div class="w-16 h-16 mx-auto mb-4 rounded-full bg-gradient-to-br from-amber-600 to-red-600 flex items-center justify-center group-hover:scale-110 transition">
+                        <i class="fas fa-dove text-2xl text-white"></i>
+                    </div>
+                    <h3 class="font-bold text-lg">Raptors</h3>
+                    <p class="text-sm text-gray-400 mt-2">Eagles, Hawks & Owls</p>
+                </div>
+                
+                <div class="glass-card rounded-2xl p-6 text-center cursor-pointer hover:bg-white/10 transition group" onclick="filterByFamily('Songbirds')">
+                    <div class="w-16 h-16 mx-auto mb-4 rounded-full bg-gradient-to-br from-teal-600 to-blue-600 flex items-center justify-center group-hover:scale-110 transition">
+                        <i class="fas fa-music text-2xl text-white"></i>
+                    </div>
+                    <h3 class="font-bold text-lg">Songbirds</h3>
+                    <p class="text-sm text-gray-400 mt-2">Passerines & Perching</p>
+                </div>
+                
+                <div class="glass-card rounded-2xl p-6 text-center cursor-pointer hover:bg-white/10 transition group" onclick="filterByFamily('Waterfowl')">
+                    <div class="w-16 h-16 mx-auto mb-4 rounded-full bg-gradient-to-br from-blue-600 to-cyan-600 flex items-center justify-center group-hover:scale-110 transition">
+                        <i class="fas fa-water text-2xl text-white"></i>
+                    </div>
+                    <h3 class="font-bold text-lg">Waterfowl</h3>
+                    <p class="text-sm text-gray-400 mt-2">Ducks, Geese & Swans</p>
+                </div>
+                
+                <div class="glass-card rounded-2xl p-6 text-center cursor-pointer hover:bg-white/10 transition group" onclick="filterByFamily('Tropical')">
+                    <div class="w-16 h-16 mx-auto mb-4 rounded-full bg-gradient-to-br from-pink-600 to-purple-600 flex items-center justify-center group-hover:scale-110 transition">
+                        <i class="fas fa-palm-tree text-2xl text-white"></i>
+                    </div>
+                    <h3 class="font-bold text-lg">Tropical</h3>
+                    <p class="text-sm text-gray-400 mt-2">Parrots, Toucans & More</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Main Gallery -->
+    <section id="gallery" class="py-20 px-4">
+        <div class="max-w-7xl mx-auto">
+            <div class="flex flex-col md:flex-row justify-between items-center mb-12 gap-4">
+                <div>
+                    <h2 class="text-4xl md:text-5xl font-bold mb-2">Bird Gallery</h2>
+                    <p class="text-gray-400">Click on any bird to learn more and hear its call</p>
+                </div>
+                
+                <!-- Filters -->
+                <div class="flex flex-wrap gap-2 justify-center">
+                    <button class="filter-tag active px-4 py-2 rounded-full text-sm" onclick="filterGallery('all', this)">All</button>
+                    <button class="filter-tag px-4 py-2 rounded-full text-sm" onclick="filterGallery('small', this)">Small</button>
+                    <button class="filter-tag px-4 py-2 rounded-full text-sm" onclick="filterGallery('medium', this)">Medium</button>
+                    <button class="filter-tag px-4 py-2 rounded-full text-sm" onclick="filterGallery('large', this)">Large</button>
+                    <button class="filter-tag px-4 py-2 rounded-full text-sm" onclick="filterGallery('endangered', this)">Endangered</button>
+                </div>
+            </div>
+
+            <!-- Bird Grid -->
+            <div id="birdGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                <!-- Birds will be injected here -->
+            </div>
+        </div>
+    </section>
+
+    <!-- Conservation Status -->
+    <section id="conservation" class="py-20 px-4 bg-gradient-to-b from-transparent to-black/30">
+        <div class="max-w-7xl mx-auto">
+            <div class="glass-card rounded-3xl p-8 md:p-12 relative overflow-hidden">
+                <div class="absolute top-0 right-0 w-64 h-64 bg-red-600/20 rounded-full filter blur-3xl"></div>
+                
+                <div class="relative z-10 grid md:grid-cols-2 gap-12 items-center">
+                    <div>
+                        <div class="inline-block px-3 py-1 rounded-full bg-red-500/20 text-red-400 text-sm font-semibold mb-4">
+                            <i class="fas fa-exclamation-triangle mr-2"></i> Conservation Alert
+                        </div>
+                        <h2 class="text-4xl font-bold mb-6">Protecting Our Feathered Friends</h2>
+                        <p class="text-gray-300 mb-6 leading-relaxed">
+                            Nearly 1,500 bird species face extinction. Habitat loss, climate change, and pollution threaten their survival. Learn how you can help protect these magnificent creatures.
+                        </p>
+                        <div class="space-y-4">
+                            <div class="flex items-center gap-4">
+                                <div class="w-12 h-12 rounded-full bg-red-500/20 flex items-center justify-center text-red-400">
+                                    <i class="fas fa-home"></i>
+                                </div>
+                                <div>
+                                    <h4 class="font-semibold">Habitat Preservation</h4>
+                                    <p class="text-sm text-gray-400">Protect wetlands, forests, and grasslands</p>
+                                </div>
+                            </div>
+                            <div class="flex items-center gap-4">
+                                <div class="w-12 h-12 rounded-full bg-amber-500/20 flex items-center justify-center text-amber-400">
+                                    <i class="fas fa-window-close"></i>
+                                </div>
+                                <div>
+                                    <h4 class="font-semibold">Collision Prevention</h4>
+                                    <p class="text-sm text-gray-400">Make windows bird-safe</p>
+                                </div>
+                            </div>
+                            <div class="flex items-center gap-4">
+                                <div class="w-12 h-12 rounded-full bg-teal-500/20 flex items-center justify-center text-teal-400">
+                                    <i class="fas fa-cat"></i>
+                                </div>
+                                <div>
+                                    <h4 class="font-semibold">Predator Control</h4>
+                                    <p class="text-sm text-gray-400">Keep cats indoors</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="relative">
+                        <div class="aspect-square rounded-2xl overflow-hidden">
+                            <img src="https://images.unsplash.com/photo-1552728089-57bdde30beb8?w=800&q=80" alt="Conservation" class="w-full h-full object-cover">
+                        </div>
+                        <div class="absolute -bottom-6 -left-6 glass-card p-4 rounded-xl">
+                            <div class="text-3xl font-bold text-red-400">1,481</div>
+                            <div class="text-sm text-gray-400">Species Threatened</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="border-t border-white/10 py-12 px-4 mt-20">
+        <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-6">
+            <div class="flex items-center space-x-3">
+                <i class="fas fa-dove text-2xl text-teal-400"></i>
+                <span class="text-xl font-bold">AviaryExplorer</span>
+            </div>
+            <div class="text-gray-400 text-sm">
+                &copy; 2024 Aviary Explorer. Educational purposes only.
+            </div>
+            <div class="flex space-x-6">
+                <a href="#" class="text-gray-400 hover:text-teal-400 transition"><i class="fab fa-twitter text-xl"></i></a>
+                <a href="#" class="text-gray-400 hover:text-teal-400 transition"><i class="fab fa-instagram text-xl"></i></a>
+                <a href="#" class="text-gray-400 hover:text-teal-400 transition"><i class="fab fa-github text-xl"></i></a>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Bird Detail Modal -->
+    <div id="birdModal" class="modal items-center justify-center p-4" onclick="closeModal(event)">
+        <div class="modal-content w-full max-w-4xl rounded-3xl overflow-hidden relative" onclick="event.stopPropagation()">
+            <button onclick="closeModal()" class="absolute top-4 right-4 z-20 w-10 h-10 rounded-full bg-black/50 hover:bg-black/70 flex items-center justify-center transition">
+                <i class="fas fa-times"></i>
+            </button>
+            
+            <div class="grid md:grid-cols-2">
+                <div class="relative h-64 md:h-auto">
+                    <img id="modalImage" src="" alt="" class="w-full h-full object-cover">
+                    <div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent md:hidden"></div>
+                </div>
+                <div class="p-8 md:p-12">
+                    <div class="flex items-center gap-3 mb-4">
+                        <span id="modalFamily" class="px-3 py-1 rounded-full bg-teal-500/20 text-teal-400 text-xs font-semibold uppercase"></span>
+                        <span id="modalSize" class="px-3 py-1 rounded-full bg-white/10 text-gray-300 text-xs font-semibold"></span>
+                    </div>
+                    
+                    <h2 id="modalName" class="text-4xl font-bold mb-2"></h2>
+                    <p id="modalScientific" class="text-gray-400 italic mb-6"></p>
+                    
+                    <div class="flex items-center gap-4 mb-6">
+                        <button id="audioBtn" class="audio-btn px-6 py-3 bg-amber-600 hover:bg-amber-500 rounded-full font-semibold transition flex items-center gap-2" onclick="toggleBirdSound()">
+                            <i class="fas fa-play" id="playIcon"></i>
+                            <span id="playText">Play Call</span>
+                            <div class="sound-wave hidden" id="soundWave">
+                                <div class="wave-bar"></div>
+                                <div class="wave-bar"></div>
+                                <div class="wave-bar"></div>
+                                <div class="wave-bar"></div>
+                                <div class="wave-bar"></div>
+                            </div>
+                        </button>
+                        <div class="text-sm text-gray-400" id="audioStatus">Listen to bird call</div>
+                    </div>
+                    
+                    <div class="space-y-4 mb-8">
+                        <div class="flex items-start gap-3">
+                            <i class="fas fa-map-marker-alt text-teal-400 mt-1"></i>
+                            <div>
+                                <h4 class="font-semibold text-sm text-gray-300">Habitat</h4>
+                                <p id="modalHabitat" class="text-gray-400"></p>
+                            </div>
+                        </div>
+                        <div class="flex items-start gap-3">
+                            <i class="fas fa-globe-americas text-teal-400 mt-1"></i>
+                            <div>
+                                <h4 class="font-semibold text-sm text-gray-300">Range</h4>
+                                <p id="modalRange" class="text-gray-400"></p>
+                            </div>
+                        </div>
+                        <div class="flex items-start gap-3">
+                            <i class="fas fa-utensils text-teal-400 mt-1"></i>
+                            <div>
+                                <h4 class="font-semibold text-sm text-gray-300">Diet</h4>
+                                <p id="modalDiet" class="text-gray-400"></p>
+                            </div>
+                        </div>
+                        <div class="flex items-start gap-3">
+                            <i class="fas fa-ruler-horizontal text-teal-400 mt-1"></i>
+                            <div>
+                                <h4 class="font-semibold text-sm text-gray-300">Wingspan</h4>
+                                <p id="modalWingspan" class="text-gray-400"></p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="border-t border-white/10 pt-6">
+                        <h4 class="font-semibold mb-2">Fun Fact</h4>
+                        <p id="modalFact" class="text-gray-300 italic"></p>
+                    </div>
+                    
+                    <div class="mt-6 flex gap-2 flex-wrap" id="modalTags"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Audio Context for generating bird sounds
+        let audioContext = null;
+        let currentOscillator = null;
+        let currentGain = null;
+        let isPlaying = false;
+
+        // Initialize Audio Context on user interaction
+        function initAudio() {
+            if (!audioContext) {
+                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            }
+        }
+
+        // Generate bird-like sounds using Web Audio API
+        function generateBirdSound(birdType) {
+            initAudio();
+            
+            if (currentOscillator) {
+                currentOscillator.stop();
+                currentOscillator = null;
+            }
+
+            const oscillator = audioContext.createOscillator();
+            const gainNode = audioContext.createGain();
+            
+            oscillator.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+
+            // Different sound patterns based on bird families
+            const now = audioContext.currentTime;
+            
+            switch(birdType) {
+                case 'Raptors':
+                    // Eagle/screech - high pitch descending
+                    oscillator.type = 'sawtooth';
+                    oscillator.frequency.setValueAtTime(800, now);
+                    oscillator.frequency.exponentialRampToValueAtTime(400, now + 0.5);
+                    gainNode.gain.setValueAtTime(0.3, now);
+                    gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.5);
+                    oscillator.start(now);
+                    oscillator.stop(now + 0.5);
+                    
+                    // Second screech
+                    setTimeout(() => {
+                        const osc2 = audioContext.createOscillator();
+                        const gain2 = audioContext.createGain();
+                        osc2.connect(gain2);
+                        gain2.connect(audioContext.destination);
+                        osc2.type = 'sawtooth';
+                        osc2.frequency.setValueAtTime(700, audioContext.currentTime);
+                        osc2.frequency.exponentialRampToValueAtTime(350, audioContext.currentTime + 0.4);
+                        gain2.gain.setValueAtTime(0.3, audioContext.currentTime);
+                        gain2.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.4);
+                        osc2.start();
+                        osc2.stop(audioContext.currentTime + 0.4);
+                    }, 600);
+                    break;
+
+                case 'Songbirds':
+                    // Musical chirps
+                    oscillator.type = 'sine';
+                    const notes = [800, 1000, 1200, 900, 1100];
+                    let time = now;
+                    notes.forEach((freq, i) => {
+                        const osc = audioContext.createOscillator();
+                        const gain = audioContext.createGain();
+                        osc.connect(gain);
+                        gain.connect(audioContext.destination);
+                        osc.type = 'sine';
+                        osc.frequency.setValueAtTime(freq, time);
+                        gain.gain.setValueAtTime(0.2, time);
+                        gain.gain.exponentialRampToValueAtTime(0.01, time + 0.1);
+                        osc.start(time);
+                        osc.stop(time + 0.1);
+                        time += 0.15;
+                    });
+                    break;
+
+                case 'Waterfowl':
+                    // Duck quack - square wave
+                    oscillator.type = 'square';
+                    oscillator.frequency.setValueAtTime(300, now);
+                    oscillator.frequency.linearRampToValueAtTime(200, now + 0.2);
+                    oscillator.frequency.linearRampToValueAtTime(250, now + 0.4);
+                    gainNode.gain.setValueAtTime(0.2, now);
+                    gainNode.gain.linearRampToValueAtTime(0.01, now + 0.4);
+                    oscillator.start(now);
+                    oscillator.stop(now + 0.4);
+                    break;
+
+                case 'Tropical':
+                    // Parrot squawk - multiple frequencies
+                    oscillator.type = 'triangle';
+                    oscillator.frequency.setValueAtTime(600, now);
+                    oscillator.frequency.linearRampToValueAtTime(800, now + 0.2);
+                    oscillator.frequency.linearRampToValueAtTime(500, now + 0.4);
+                    gainNode.gain.setValueAtTime(0.3, now);
+                    gainNode.gain.linearRampToValueAtTime(0.01, now + 0.4);
+                    oscillator.start(now);
+                    oscillator.stop(now + 0.4);
+                    
+                    // Echo
+                    setTimeout(() => {
+                        const osc2 = audioContext.createOscillator();
+                        const gain2 = audioContext.createGain();
+                        osc2.connect(gain2);
+                        gain2.connect(audioContext.destination);
+                        osc2.type = 'triangle';
+                        osc2.frequency.setValueAtTime(550, audioContext.currentTime);
+                        osc2.frequency.linearRampToValueAtTime(750, audioContext.currentTime + 0.2);
+                        gain2.gain.setValueAtTime(0.2, audioContext.currentTime);
+                        gain2.gain.linearRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
+                        osc2.start();
+                        osc2.stop(audioContext.currentTime + 0.3);
+                    }, 500);
+                    break;
+
+                case 'Hummingbirds':
+                    // High pitched buzz
+                    oscillator.type = 'sine';
+                    oscillator.frequency.setValueAtTime(2000, now);
+                    gainNode.gain.setValueAtTime(0.1, now);
+                    gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.3);
+                    oscillator.start(now);
+                    oscillator.stop(now + 0.3);
+                    break;
+
+                case 'Owls':
+                    // Owl hoot - low frequency
+                    oscillator.type = 'sine';
+                    oscillator.frequency.setValueAtTime(400, now);
+                    gainNode.gain.setValueAtTime(0, now);
+                    gainNode.gain.linearRampToValueAtTime(0.3, now + 0.2);
+                    gainNode.gain.linearRampToValueAtTime(0, now + 0.8);
+                    oscillator.start(now);
+                    oscillator.stop(now + 0.8);
+                    
+                    // Second hoot
+                    setTimeout(() => {
+                        const osc2 = audioContext.createOscillator();
+                        const gain2 = audioContext.createGain();
+                        osc2.connect(gain2);
+                        gain2.connect(audioContext.destination);
+                        osc2.type = 'sine';
+                        osc2.frequency.setValueAtTime(350, audioContext.currentTime);
+                        gain2.gain.setValueAtTime(0, audioContext.currentTime);
+                        gain2.gain.linearRampToValueAtTime(0.3, audioContext.currentTime + 0.2);
+                        gain2.gain.linearRampToValueAtTime(0, audioContext.currentTime + 0.8);
+                        osc2.start();
+                        osc2.stop(audioContext.currentTime + 0.8);
+                    }, 1000);
+                    break;
+
+                default:
+                    // Generic chirp
+                    oscillator.type = 'sine';
+                    oscillator.frequency.setValueAtTime(1000, now);
+                    gainNode.gain.setValueAtTime(0.2, now);
+                    gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.2);
+                    oscillator.start(now);
+                    oscillator.stop(now + 0.2);
+            }
+
+            currentOscillator = oscillator;
+            currentGain = gainNode;
+        }
+
+        // 50 Bird Species Database
+        const birds = [
+            {
+                id: 1,
+                name: "Bald Eagle",
+                scientific: "Haliaeetus leucocephalus",
+                family: "Raptors",
+                size: "large",
+                habitat: "Coastal regions, lakes, rivers",
+                range: "North America",
+                diet: "Fish, waterfowl, small mammals",
+                wingspan: "1.8 - 2.3 meters",
+                fact: "Bald eagles can dive at speeds up to 160 km/h (100 mph) when catching prey.",
+                image: "https://images.unsplash.com/photo-1611689342806-0863700ce1e4?w=800&q=80",
+                endangered: false,
+                tags: ["national bird", "symbol of freedom"]
+            },
+            {
+                id: 2,
+                name: "Blue Jay",
+                scientific: "Cyanocitta cristata",
+                family: "Songbirds",
+                size: "small",
+                habitat: "Forests, parks, residential areas",
+                range: "Eastern and Central North America",
+                diet: "Nuts, seeds, insects, eggs",
+                wingspan: "34-43 cm",
+                fact: "Blue Jays are excellent mimics and can imitate hawk calls to scare other birds away from feeders.",
+                image: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQkS7e_PguIDEdtBeRmxbvxeA7G8OCtXEB4kQ&s",
+                endangered: false,
+                tags: ["intelligent", "vocal"]
+            },
+            {
+                id: 3,
+                name: "Scarlet Macaw",
+                scientific: "Ara macao",
+                family: "Tropical",
+                size: "medium",
+                habitat: "Tropical rainforests",
+                range: "Central and South America",
+                diet: "Fruits, nuts, seeds, flowers",
+                wingspan: "81-96 cm",
+                fact: "Macaws mate for life and can live up to 75 years in captivity.",
+                image: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR4Jsd9RpqRuTRCHn-aVPYbQIUvmuXEJWJY7RJ1PJOorRLcv2J4K-MXtes2duYgSz0NyvCggG1QtyRT9bHq7UPcMEV5Yx0atwciaut1yw&s=10",
+                endangered: true,
+                tags: ["colorful", "long-lived"]
+            },
+            {
+                id: 4,
+                name: "Great Horned Owl",
+                scientific: "Bubo virginianus",
+                family: "Raptors",
+                size: "medium",
+                habitat: "Forests, deserts, urban areas",
+                range: "Americas",
+                diet: "Mammals, birds, reptiles",
+                wingspan: "91-153 cm",
+                fact: "Their grip strength is 500 psi - equivalent to a German Shepherd's bite!",
+                image: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTmOFv7t0tSsxJ1JBEaSB9UUmuxOy0JkQt0P5OvNTdsLHl_Nde5Nwb-eK7XVSh33I7tk26ovT6syrI95VWHMuDFTtA5wW4Cw0j2Cy2IBQ&s=10",
+                endangered: false,
+                tags: ["nocturnal", "powerful"]
+            },
+            {
+                id: 5,
+                name: "Ruby-throated Hummingbird",
+                scientific: "Archilochus colubris",
+                family: "Hummingbirds",
+                size: "small",
+                habitat: "Gardens, woodlands, meadows",
+                range: "Eastern North America, Central America",
+                diet: "Nectar, small insects",
+                wingspan: "8-11 cm",
+                fact: "Their wings beat 53 times per second and they can fly backwards.",
+                image: "https://images.unsplash.com/photo-1591198936750-16d8e15edb9e?w=800&q=80",
+                endangered: false,
+                tags: ["tiny", "migratory"]
+            },
+            {
+                id: 6,
+                name: "Emperor Penguin",
+                scientific: "Aptenodytes forsteri",
+                family: "Waterfowl",
+                size: "large",
+                habitat: "Antarctic ice",
+                range: "Antarctica",
+                diet: "Fish, squid, krill",
+                wingspan: "76-89 cm",
+                fact: "Male penguins incubate eggs for 65 days without eating, surviving on fat reserves.",
+                image: "https://images.unsplash.com/photo-1598439210625-5067c578f3f6?w=800&q=80",
+                endangered: true,
+                tags: ["antarctic", "extreme"]
+            },
+            {
+                id: 7,
+                name: "Keel-billed Toucan",
+                scientific: "Ramphastos sulfuratus",
+                family: "Tropical",
+                size: "medium",
+                habitat: "Tropical and subtropical rainforests",
+                range: "Central America",
+                diet: "Fruits, insects, lizards, eggs",
+                wingspan: "43-60 cm",
+                fact: "Their large bill helps regulate body temperature and is surprisingly light.",
+                image: "https://upload.wikimedia.org/wikipedia/commons/thumb/9/96/Keel_billed_toucan_costa_rica_%28cropped%29.jpg/330px-Keel_billed_toucan_costa_rica_%28cropped%29.jpg",
+                endangered: false,
+                tags: ["colorful bill", "rainforest"]
+            },
+            {
+                id: 8,
+                name: "Golden Eagle",
+                scientific: "Aquila chrysaetos",
+                family: "Raptors",
+                size: "large",
+                habitat: "Mountains, cliffs, open country",
+                range: "Northern Hemisphere",
+                diet: "Mammals, birds, reptiles",
+                wingspan: "1.8 - 2.3 meters",
+                fact: "They can spot prey from 3 kilometers away and dive at 240 km/h.",
+                image: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcShlSW4qRI5CgO65MvUqLKQCMGFpw2DJiWEGg&s",
+                endangered: false,
+                tags: ["apex predator", "migratory"]
+            },
+            {
+                id: 9,
+                name: "Atlantic Puffin",
+                scientific: "Fratercula arctica",
+                family: "Waterfowl",
+                size: "small",
+                habitat: "Coastal cliffs, islands",
+                range: "North Atlantic Ocean",
+                diet: "Fish, crustaceans, mollusks",
+                wingspan: "47-63 cm",
+                fact: "They can carry up to 10 fish in their beak at once using their tongue to hold them.",
+                image: "https://www.ducks.org/files/live/sites/ducksorg/files/Conservation/Waterfowl%20Research%20and%20Science/SC_10%20Facts%20Puffins/02_shutterstock_771064963.jpg",
+                endangered: true,
+                tags: ["clown of sea", "diving"]
+            },
+            {
+                id: 10,
+                name: "American Robin",
+                scientific: "Turdus migratorius",
+                family: "Songbirds",
+                size: "small",
+                habitat: "Woodlands, gardens, parks",
+                range: "North America",
+                diet: "Insects, fruits, worms",
+                wingspan: "31-41 cm",
+                fact: "Robins can navigate using magnetic fields in their eyes.",
+                image: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRk7nKrakQS42zukDzCsaEW-kVHkH1s2B1lNg&s",
+                endangered: false,
+                tags: ["common", "harbinger of spring"]
+            },
+            {
+                id: 11,
+                name: "Peregrine Falcon",
+                scientific: "Falco peregrinus",
+                family: "Raptors",
+                size: "medium",
+                habitat: "Cliffs, skyscrapers, open country",
+                range: "Worldwide",
+                diet: "Other birds, small mammals",
+                wingspan: "74-120 cm",
+                fact: "Fastest animal on Earth, reaching speeds over 320 km/h in dives.",
+                image: "https://images.unsplash.com/photo-1611004666328-c3f4d0c0f886?w=800&q=80",
+                endangered: false,
+                tags: ["fastest", "urban adapter"]
+            },
+            {
+                id: 12,
+                name: "Northern Cardinal",
+                scientific: "Cardinalis cardinalis",
+                family: "Songbirds",
+                size: "small",
+                habitat: "Woodlands, gardens, wetlands",
+                range: "Eastern North America",
+                diet: "Seeds, fruits, insects",
+                wingspan: "25-31 cm",
+                fact: "Male cardinals fiercely defend their territory, even attacking their own reflection.",
+                image: "https://images.unsplash.com/photo-1552728089-57bdde30beb8?w=800&q=80",
+                endangered: false,
+                tags: ["bright red", "year-round resident"]
+            },
+            {
+                id: 13,
+                name: "Snowy Owl",
+                scientific: "Bubo scandiacus",
+                family: "Raptors",
+                size: "large",
+                habitat: "Arctic tundra, open fields",
+                range: "Arctic regions, sometimes south",
+                diet: "Lemmings, other small mammals",
+                wingspan: "125-150 cm",
+                fact: "Unlike most owls, they hunt during the day, especially in summer.",
+                image: "https://images.unsplash.com/photo-1519865086768-c4179d304298?w=800&q=80",
+                endangered: true,
+                tags: ["arctic", "diurnal"]
+            },
+            {
+                id: 14,
+                name: "Mallard Duck",
+                scientific: "Anas platyrhynchos",
+                family: "Waterfowl",
+                size: "medium",
+                habitat: "Wetlands, ponds, lakes, rivers",
+                range: "Northern Hemisphere",
+                diet: "Aquatic plants, insects, small fish",
+                wingspan: "81-98 cm",
+                fact: "The male's green head is actually an optical illusion caused by light refraction.",
+                image: "https://images.unsplash.com/photo-1552728089-57bdde30beb8?w=800&q=80",
+                endangered: false,
+                tags: ["common", "adaptable"]
+            },
+            {
+                id: 15,
+                name: "Barn Owl",
+                scientific: "Tyto alba",
+                family: "Raptors",
+                size: "medium",
+                habitat: "Farmlands, grasslands, open country",
+                range: "Worldwide except polar regions",
+                diet: "Small mammals, especially rodents",
+                wingspan: "80-95 cm",
+                fact: "One barn owl family can eat up to 3,000 rodents in a single year.",
+                image: "https://images.unsplash.com/photo-1519865086768-c4179d304298?w=800&q=80",
+                endangered: false,
+                tags: ["heart-shaped face", "silent hunter"]
+            },
+            {
+                id: 16,
+                name: "European Robin",
+                scientific: "Erithacus rubecula",
+                family: "Songbirds",
+                size: "small",
+                habitat: "Woodlands, gardens, parks",
+                range: "Europe, Western Asia, North Africa",
+                diet: "Insects, worms, fruits, seeds",
+                wingspan: "20-22 cm",
+                fact: "Robins are fiercely territorial and will attack red objects near their territory.",
+                image: "https://images.unsplash.com/photo-1552728089-57bdde30beb8?w=800&q=80",
+                endangered: false,
+                tags: ["friendly", "Christmas symbol"]
+            },
+            {
+                id: 17,
+                name: "Peacock",
+                scientific: "Pavo cristatus",
+                family: "Tropical",
+                size: "large",
+                habitat: "Forests, farmlands, near water",
+                range: "Indian subcontinent, introduced worldwide",
+                diet: "Seeds, insects, fruits, small mammals",
+                wingspan: "130-160 cm",
+                fact: "The elaborate tail feathers are used in courtship displays and can have over 200 eyespots.",
+                image: "https://images.unsplash.com/photo-1552728089-57bdde30beb8?w=800&q=80",
+                endangered: false,
+                tags: ["ornamental", "courtship display"]
+            },
+            {
+                id: 18,
+                name: "Flamingo",
+                scientific: "Phoenicopterus roseus",
+                family: "Waterfowl",
+                size: "large",
+                habitat: "Lakes, lagoons, estuaries",
+                range: "Africa, Southern Europe, Asia",
+                diet: "Algae, crustaceans, small insects",
+                wingspan: "140-165 cm",
+                fact: "Their pink color comes from carotenoids in their diet. They can drink boiling water from geysers.",
+                image: "https://images.unsplash.com/photo-1552728089-57bdde30beb8?w=800&q=80",
+                endangered: false,
+                tags: ["pink", "filter feeder"]
+            },
+            {
+                id: 19,
+                name: "Kingfisher",
+                scientific: "Alcedo atthis",
+                family: "Tropical",
+                size: "small",
+                habitat: "Rivers, streams, lakeshores",
+                range: "Europe, Asia, North Africa",
+                diet: "Fish, aquatic insects",
+                wingspan: "25-35 cm",
+                fact: "They dive into water at speeds up to 40 km/h but special eye protection prevents water damage.",
+                image: "https://images.unsplash.com/photo-1552728089-57bdde30beb8?w=800&q=80",
+                endangered: false,
+                tags: ["brilliant blue", "expert diver"]
+            },
+            {
+                id: 20,
+                name: "Swan",
+                scientific: "Cygnus olor",
+                family: "Waterfowl",
+                size: "large",
+                habitat: "Lakes, slow rivers, wetlands",
+                range: "Europe, Central Asia, introduced worldwide",
+                diet: "Aquatic plants, insects, small fish",
+                wingspan: "200-240 cm",
+                fact: "Swans form monogamous bonds that can last for life, and they have over 20,000 feathers.",
+                image: "https://images.unsplash.com/photo-1552728089-57bdde30beb8?w=800&q=80",
+                endangered: false,
+                tags: ["elegant", "monogamous"]
+            },
+            {
+                id: 21,
+                name: "Hummingbird Hawk-moth",
+                scientific: "Macroglossum stellatarum",
+                family: "Hummingbirds",
+                size: "small",
+                habitat: "Gardens, meadows, woodland edges",
+                range: "Southern Europe, Asia, North Africa",
+                diet: "Nectar from flowers",
+                wingspan: "4-6 cm",
+                fact: "Despite being a moth, it hovers and feeds exactly like a hummingbird with a 70+ wingbeats per second.",
+                image: "https://images.unsplash.com/photo-1591198936750-16d8e15edb9e?w=800&q=80",
+                endangered: false,
+                tags: ["mimic", "fast wings"]
+            },
+            {
+                id: 22,
+                name: "Red-tailed Hawk",
+                scientific: "Buteo jamaicensis",
+                family: "Raptors",
+                size: "large",
+                habitat: "Open country, woodlands, deserts",
+                range: "North America, Central America",
+                diet: "Small mammals, birds, reptiles",
+                wingspan: "110-141 cm",
+                fact: "Their distinctive screech is often used in movies to represent any bird of prey, including eagles.",
+                image: "https://images.unsplash.com/photo-1611004666328-c3f4d0c0f886?w=800&q=80",
+                endangered: false,
+                tags: ["common raptor", "movie star"]
+            },
+            {
+                id: 23,
+                name: "Cockatoo",
+                scientific: "Cacatua galerita",
+                family: "Tropical",
+                size: "medium",
+                habitat: "Forests, woodlands, urban areas",
+                range: "Australia, New Guinea, Indonesia",
+                diet: "Seeds, nuts, fruits, berries",
+                wingspan: "80-90 cm",
+                fact: "They have a crest of feathers they can raise or lower to express emotions.",
+                image: "https://images.unsplash.com/photo-1552727436-c0c93da52765?w=800&q=80",
+                endangered: false,
+                tags: ["crest", "loud"]
+            },
+            {
+                id: 24,
+                name: "Albatross",
+                scientific: "Diomedea exulans",
+                family: "Waterfowl",
+                size: "large",
+                habitat: "Open ocean, remote islands",
+                range: "Southern Ocean, North Pacific",
+                diet: "Squid, fish, krill",
+                wingspan: "250-350 cm",
+                fact: "They can fly for months without landing and have the largest wingspan of any bird.",
+                image: "https://images.unsplash.com/photo-1549608276-5786777e6587?w=800&q=80",
+                endangered: true,
+                tags: ["wandering", "longest wingspan"]
+            },
+            {
+                id: 25,
+                name: "Woodpecker",
+                scientific: "Dendrocopos major",
+                family: "Songbirds",
+                size: "small",
+                habitat: "Woodlands, forests, parks",
+                range: "Europe, Asia",
+                diet: "Insects, larvae, nuts, seeds",
+                wingspan: "34-39 cm",
+                fact: "Their tongue wraps around their skull to cushion the brain while pecking at 20 times per second.",
+                image: "https://images.unsplash.com/photo-1552728089-57bdde30beb8?w=800&q=80",
+                endangered: false,
+                tags: ["drumming", "tree climber"]
+            },
+            {
+                id: 26,
+                name: "Pelican",
+                scientific: "Pelecanus onocrotalus",
+                family: "Waterfowl",
+                size: "large",
+                habitat: "Lakes, rivers, coastal waters",
+                range: "Southeast Europe, Asia, Africa",
+                diet: "Fish, amphibians, crustaceans",
+                wingspan: "226-360 cm",
+                fact: "Their bill pouch can hold up to 3 gallons of water and they use it to cool themselves down.",
+                image: "https://images.unsplash.com/photo-1552728089-57bdde30beb8?w=800&q=80",
+                endangered: false,
+                tags: ["large bill", "fisher"]
+            },
+            {
+                id: 27,
+                name: "Canary",
+                scientific: "Serinus canaria",
+                family: "Songbirds",
+                size: "small",
+                habitat: "Islands, woodlands, gardens",
+                range: "Canary Islands, Madeira, Azores",
+                diet: "Seeds, fruits, small insects",
+                wingspan: "20-23 cm",
+                fact: "Bred in captivity for 500+ years, they were originally used by miners to detect toxic gases.",
+                image: "https://images.unsplash.com/photo-1552728089-57bdde30beb8?w=800&q=80",
+                endangered: false,
+                tags: ["singer", "popular pet"]
+            },
+            {
+                id: 28,
+                name: "Vulture",
+                scientific: "Gyps fulvus",
+                family: "Raptors",
+                size: "large",
+                habitat: "Mountains, cliffs, open country",
+                range: "Southern Europe, Africa, Asia",
+                diet: "Carrion (dead animals)",
+                wingspan: "230-265 cm",
+                fact: "Their stomach acid is so corrosive it can kill anthrax, cholera, and botulism bacteria.",
+                image: "https://images.unsplash.com/photo-1611004666328-c3f4d0c0f886?w=800&q=80",
+                endangered: true,
+                tags: ["scavenger", "cleanup crew"]
+            },
+            {
+                id: 29,
+                name: "Toucanet",
+                scientific: "Aulacorhynchus prasinus",
+                family: "Tropical",
+                size: "small",
+                habitat: "Mountain forests, cloud forests",
+                range: "Central America, Andes",
+                diet: "Fruits, berries, insects",
+                wingspan: "30-35 cm",
+                fact: "Smaller relatives of toucans, they nest in tree holes and sleep with their bills tucked over their backs.",
+                image: "https://images.unsplash.com/photo-1535083783855-76462b2f9ce8?w=800&q=80",
+                endangered: false,
+                tags: ["green", "mountain dweller"]
+            },
+            {
+                id: 30,
+                name: "Seagull",
+                scientific: "Larus argentatus",
+                family: "Waterfowl",
+                size: "medium",
+                habitat: "Coasts, islands, urban areas",
+                range: "Northern Hemisphere",
+                diet: "Fish, crustaceans, garbage, eggs",
+                wingspan: "120-150 cm",
+                fact: "They can drink salt water thanks to special glands that filter out the salt.",
+                image: "https://images.unsplash.com/photo-1549608276-5786777e6587?w=800&q=80",
+                endangered: false,
+                tags: ["coastal", "adaptable"]
+            },
+            {
+                id: 31,
+                name: "Finch",
+                scientific: "Fringilla coelebs",
+                family: "Songbirds",
+                size: "small",
+                habitat: "Woodlands, gardens, farmlands",
+                range: "Europe, North Africa, Western Asia",
+                diet: "Seeds, insects, berries",
+                wingspan: "21-25 cm",
+                fact: "Darwin studied finches in the Galapagos, leading to his theory of evolution by natural selection.",
+                image: "https://images.unsplash.com/photo-1552728089-57bdde30beb8?w=800&q=80",
+                endangered: false,
+                tags: ["Darwin's birds", "diverse"]
+            },
+            {
+                id: 32,
+                name: "Osprey",
+                scientific: "Pandion haliaetus",
+                family: "Raptors",
+                size: "large",
+                habitat: "Near water bodies worldwide",
+                range: "Worldwide",
+                diet: "Almost exclusively fish",
+                wingspan: "127-180 cm",
+                fact: "They have reversible outer toes and spiny foot pads to help grip slippery fish.",
+                image: "https://images.unsplash.com/photo-1611004666328-c3f4d0c0f886?w=800&q=80",
+                endangered: false,
+                tags: ["fish hawk", "global"]
+            },
+            {
+                id: 33,
+                name: "Lovebird",
+                scientific: "Agapornis roseicollis",
+                family: "Tropical",
+                size: "small",
+                habitat: "Woodlands, savannas, scrub forests",
+                range: "Africa, Madagascar",
+                diet: "Seeds, fruits, berries",
+                wingspan: "9-14 cm",
+                fact: "They form strong monogamous bonds and will pine away if separated from their mate.",
+                image: "https://images.unsplash.com/photo-1552727436-c0c93da52765?w=800&q=80",
+                endangered: false,
+                tags: ["affectionate", "pet"]
+            },
+            {
+                id: 34,
+                name: "Heron",
+                scientific: "Ardea cinerea",
+                family: "Waterfowl",
+                size: "large",
+                habitat: "Wetlands, lakes, rivers, coasts",
+                range: "Europe, Africa, Asia",
+                diet: "Fish, amphibians, small mammals",
+                wingspan: "155-175 cm",
+                fact: "They can stand motionless for hours waiting for prey, and sometimes drop insects on water to lure fish.",
+                image: "https://images.unsplash.com/photo-1552728089-57bdde30beb8?w=800&q=80",
+                endangered: false,
+                tags: ["patient hunter", "wader"]
+            },
+            {
+                id: 35,
+                name: "Wren",
+                scientific: "Troglodytes troglodytes",
+                family: "Songbirds",
+                size: "small",
+                habitat: "Woodlands, gardens, undergrowth",
+                range: "Europe, Asia, North Africa",
+                diet: "Insects, spiders, small invertebrates",
+                wingspan: "12-16 cm",
+                fact: "Despite being tiny, they have one of the loudest songs relative to their body size.",
+                image: "https://images.unsplash.com/photo-1552728089-57bdde30beb8?w=800&q=80",
+                endangered: false,
+                tags: ["tiny", "loud song"]
+            },
+            {
+                id: 36,
+                name: "Kookaburra",
+                scientific: "Dacelo novaeguineae",
+                family: "Tropical",
+                size: "medium",
+                habitat: "Eucalyptus forests, woodlands",
+                range: "Eastern Australia",
+                diet: "Snakes, lizards, insects, small mammals",
+                wingspan: "45-50 cm",
+                fact: "Their laugh-like call is actually a territorial declaration and is used in many jungle movies.",
+                image: "https://images.unsplash.com/photo-1552727436-c0c93da52765?w=800&q=80",
+                endangered: false,
+                tags: ["laughing", "Australian"]
+            },
+            {
+                id: 37,
+                name: "Condor",
+                scientific: "Vultur gryphus",
+                family: "Raptors",
+                size: "large",
+                habitat: "Mountains, coasts, deserts",
+                range: "Andes Mountains, South American coasts",
+                diet: "Carrion, especially large mammals",
+                wingspan: "270-320 cm",
+                fact: "One of the longest-lived birds, reaching 70+ years, and can fly for 100+ miles without flapping.",
+                image: "https://images.unsplash.com/photo-1611004666328-c3f4d0c0f886?w=800&q=80",
+                endangered: true,
+                tags: ["soaring", "ancient"]
+            },
+            {
+                id: 38,
+                name: "Puffin",
+                scientific: "Fratercula corniculata",
+                family: "Waterfowl",
+                size: "small",
+                habitat: "Coastal cliffs, islands",
+                range: "North Pacific Ocean",
+                diet: "Fish, squid, crustaceans",
+                wingspan: "47-63 cm",
+                fact: "They shed their colorful beak plates after breeding season, revealing a smaller, duller beak underneath.",
+                image: "https://images.unsplash.com/photo-1549608276-5786777e6587?w=800&q=80",
+                endangered: true,
+                tags: ["horned", "colorful beak"]
+            },
+            {
+                id: 39,
+                name: "Nightingale",
+                scientific: "Luscinia megarhynchos",
+                family: "Songbirds",
+                size: "small",
+                habitat: "Woodlands, scrub, gardens",
+                range: "Europe, Western Asia, Africa",
+                diet: "Insects, berries, fruits",
+                wingspan: "20-22 cm",
+                fact: "Males sing both day and night during breeding season, with over 1,000 different song variations.",
+                image: "https://images.unsplash.com/photo-1552728089-57bdde30beb8?w=800&q=80",
+                endangered: false,
+                tags: ["famous singer", "nocturnal song"]
+            },
+            {
+                id: 40,
+                name: "Tern",
+                scientific: "Sterna hirundo",
+                family: "Waterfowl",
+                size: "small",
+                habitat: "Coasts, islands, wetlands",
+                range: "Worldwide",
+                diet: "Fish, crustaceans, insects",
+                wingspan: "70-80 cm",
+                fact: "They migrate from Arctic to Antarctic and back each year, seeing more daylight than any other creature.",
+                image: "https://images.unsplash.com/photo-1549608276-5786777e6587?w=800&q=80",
+                endangered: false,
+                tags: ["long migration", "graceful"]
+            },
+            {
+                id: 41,
+                name: "Bee Hummingbird",
+                scientific: "Mellisuga helenae",
+                family: "Hummingbirds",
+                size: "small",
+                habitat: "Cuban forests, gardens",
+                range: "Cuba",
+                diet: "Nectar, insects",
+                wingspan: "5-6 cm",
+                fact: "Smallest bird in the world, weighing less than a dime. Their nests are the size of a thimble.",
+                image: "https://images.unsplash.com/photo-1591198936750-16d8e15edb9e?w=800&q=80",
+                endangered: true,
+                tags: ["world's smallest", "Cuban endemic"]
+            },
+            {
+                id: 42,
+                name: "Harpy Eagle",
+                scientific: "Harpia harpyja",
+                family: "Raptors",
+                size: "large",
+                habitat: "Tropical rainforests",
+                range: "Central and South America",
+                diet: "Sloths, monkeys, large birds",
+                wingspan: "176-224 cm",
+                fact: "Their talons are as large as a grizzly bear's claws and they can lift prey equal to their body weight.",
+                image: "https://images.unsplash.com/photo-1611004666328-c3f4d0c0f886?w=800&q=80",
+                endangered: true,
+                tags: ["powerful", "rainforest apex"]
+            },
+            {
+                id: 43,
+                name: "Lyrebird",
+                scientific: "Menura novaehollandiae",
+                family: "Songbirds",
+                size: "medium",
+                habitat: "Rainforests, wet woodlands",
+                range: "Southeastern Australia",
+                diet: "Insects, spiders, seeds, fruits",
+                wingspan: "70-80 cm",
+                fact: "Best mimic in the world, copying chainsaws, car alarms, camera shutters, and 20+ other bird species.",
+                image: "https://images.unsplash.com/photo-1552728089-57bdde30beb8?w=800&q=80",
+                endangered: false,
+                tags: ["mimic", "spectacular tail"]
+            },
+            {
+                id: 44,
+                name: "Quetzal",
+                scientific: "Pharomachrus mocinno",
+                family: "Tropical",
+                size: "medium",
+                habitat: "Cloud forests",
+                range: "Central America",
+                diet: "Fruits, insects, small vertebrates",
+                wingspan: "30-40 cm",
+                fact: "Ancient Maya and Aztec sacred bird. Their iridescent green tail feathers can be 60+ cm long.",
+                image: "https://images.unsplash.com/photo-1535083783855-76462b2f9ce8?w=800&q=80",
+                endangered: true,
+                tags: ["sacred", "iridescent"]
+            },
+            {
+                id: 45,
+                name: "Penguin",
+                scientific: "Spheniscus magellanicus",
+                family: "Waterfowl",
+                size: "medium",
+                habitat: "Coastal areas, islands",
+                range: "Southern South America",
+                diet: "Fish, squid, crustaceans",
+                wingspan: "42-50 cm",
+                fact: "They can drink salt water and have special glands to excrete the excess salt through their beaks.",
+                image: "https://images.unsplash.com/photo-1598439210625-5067c578f3f6?w=800&q=80",
+                endangered: true,
+                tags: ["Magellanic", "salt excretion"]
+            },
+            {
+                id: 46,
+                name: "Starling",
+                scientific: "Sturnus vulgaris",
+                family: "Songbirds",
+                size: "small",
+                habitat: "Urban areas, farmlands, woodlands",
+                range: "Europe, Asia, introduced worldwide",
+                diet: "Insects, fruits, seeds",
+                wingspan: "31-44 cm",
+                fact: "Their murmurations (flocks) can number in millions, creating spectacular aerial displays.",
+                image: "https://images.unsplash.com/photo-1552728089-57bdde30beb8?w=800&q=80",
+                endangered: false,
+                tags: ["murmuration", "invasive"]
+            },
+            {
+                id: 47,
+                name: "Secretary Bird",
+                scientific: "Sagittarius serpentarius",
+                family: "Raptors",
+                size: "large",
+                habitat: "African savannas, grasslands",
+                range: "Sub-Saharan Africa",
+                diet: "Snakes, insects, small mammals",
+                wingspan: "120-135 cm",
+                fact: "They stomp on prey with 195N of force (5x their body weight) to kill it before eating.",
+                image: "https://images.unsplash.com/photo-1611004666328-c3f4d0c0f886?w=800&q=80",
+                endangered: true,
+                tags: ["snake hunter", "stomper"]
+            },
+            {
+                id: 48,
+                name: "Hoatzin",
+                scientific: "Opisthocomus hoazin",
+                family: "Tropical",
+                size: "medium",
+                habitat: "Amazon and Orinoco river basins",
+                range: "South America",
+                diet: "Leaves, fruits, flowers",
+                wingspan: "65-70 cm",
+                fact: "Only bird with a digestive system like cows (fermentation). Chicks have claws on their wings to climb trees.",
+                image: "https://images.unsplash.com/photo-1535083783855-76462b2f9ce8?w=800&q=80",
+                endangered: false,
+                tags: ["stink bird", "primitive"]
+            },
+            {
+                id: 49,
+                name: "Shoebill",
+                scientific: "Balaeniceps rex",
+                family: "Waterfowl",
+                size: "large",
+                habitat: "Freshwater swamps, marshes",
+                range: "East Africa",
+                diet: "Fish, frogs, small crocodiles",
+                wingspan: "230-260 cm",
+                fact: "They stand perfectly still for hours, then attack with incredible speed. Their bill looks like a wooden shoe.",
+                image: "https://images.unsplash.com/photo-1552728089-57bdde30beb8?w=800&q=80",
+                endangered: true,
+                tags: ["prehistoric look", "ambush hunter"]
+            },
+            {
+                id: 50,
+                name: "Superb Lyrebird",
+                scientific: "Menura novaehollandiae",
+                family: "Songbirds",
+                size: "medium",
+                habitat: "Temperate rainforests",
+                range: "Southeast Australia",
+                diet: "Invertebrates, soil creatures",
+                wingspan: "75-85 cm",
+                fact: "Males clear a circular stage of 1-2 meters to perform their elaborate song and dance displays.",
+                image: "https://images.unsplash.com/photo-1552728089-57bdde30beb8?w=800&q=80",
+                endangered: false,
+                tags: ["dance floor", "master mimic"]
+            }
+        ];
+
+        let currentBird = null;
+        let audioPlaying = false;
+        let audioInterval = null;
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            createFloatingFeathers();
+            renderBirds(birds);
+            animateCounters();
+            setupParallax();
+            setupKeyboardShortcuts();
+        });
+
+        // Create floating feather background
+        function createFloatingFeathers() {
+            const bg = document.getElementById('birdBg');
+            const featherIcons = ['fa-feather', 'fa-feather-alt', 'fa-dove'];
+            
+            for (let i = 0; i < 15; i++) {
+                const feather = document.createElement('div');
+                feather.className = 'floating-feather fas ' + featherIcons[Math.floor(Math.random() * featherIcons.length)];
+                feather.style.left = Math.random() * 100 + '%';
+                feather.style.animationDelay = Math.random() * 20 + 's';
+                feather.style.animationDuration = (15 + Math.random() * 10) + 's';
+                bg.appendChild(feather);
+            }
+        }
+
+        // Render Bird Cards
+        function renderBirds(birdList) {
+            const grid = document.getElementById('birdGrid');
+            if (birdList.length === 0) {
+                grid.innerHTML = '<div class="col-span-full text-center py-12 text-gray-400">No birds found matching your criteria.</div>';
+                return;
+            }
+            
+            grid.innerHTML = birdList.map(bird => `
+                <div class="bird-card glass-card cursor-pointer group" onclick="openModal(${bird.id})">
+                    <div class="aspect-[4/3] overflow-hidden relative">
+                        <img src="${bird.image}" alt="${bird.name}" class="w-full h-full object-cover" loading="lazy">
+                        ${bird.endangered ? '<div class="absolute top-4 right-4 px-3 py-1 bg-red-500/80 rounded-full text-xs font-bold text-white"><i class="fas fa-exclamation-circle mr-1"></i>Endangered</div>' : ''}
+                        <div class="absolute top-4 left-4 w-10 h-10 rounded-full bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition">
+                            <i class="fas fa-volume-up text-white"></i>
+                        </div>
+                    </div>
+                    <div class="bird-overlay">
+                        <div class="flex justify-between items-end">
+                            <div>
+                                <h3 class="text-2xl font-bold mb-1">${bird.name}</h3>
+                                <p class="text-sm text-gray-300 italic">${bird.scientific}</p>
+                            </div>
+                            <div class="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center group-hover:bg-teal-500 transition">
+                                <i class="fas fa-arrow-right"></i>
+                            </div>
+                        </div>
+                        <div class="flex gap-2 mt-3">
+                            <span class="px-2 py-1 rounded bg-white/10 text-xs">${bird.family}</span>
+                            <span class="px-2 py-1 rounded bg-white/10 text-xs capitalize">${bird.size}</span>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Filter Functions
+        function filterGallery(type, btn) {
+            // Update active state
+            document.querySelectorAll('.filter-tag').forEach(tag => tag.classList.remove('active'));
+            btn.classList.add('active');
+            
+            if (type === 'all') {
+                renderBirds(birds);
+            } else if (type === 'endangered') {
+                renderBirds(birds.filter(b => b.endangered));
+            } else {
+                renderBirds(birds.filter(b => b.size === type));
+            }
+        }
+
+        function filterByFamily(family) {
+            document.getElementById('gallery').scrollIntoView({ behavior: 'smooth' });
+            renderBirds(birds.filter(b => b.family === family));
+            
+            // Update filter tags
+            document.querySelectorAll('.filter-tag').forEach(tag => tag.classList.remove('active'));
+        }
+
+        // Search Functionality
+        function toggleSearch() {
+            const overlay = document.getElementById('searchOverlay');
+            overlay.classList.toggle('hidden');
+            if (!overlay.classList.contains('hidden')) {
+                document.getElementById('searchInput').focus();
+                document.getElementById('searchInput').value = '';
+                document.getElementById('searchResults').innerHTML = '';
+            }
+        }
+
+        function searchBirds(query) {
+            const results = document.getElementById('searchResults');
+            if (!query) {
+                results.innerHTML = '';
+                return;
+            }
+            
+            const filtered = birds.filter(b => 
+                b.name.toLowerCase().includes(query.toLowerCase()) ||
+                b.scientific.toLowerCase().includes(query.toLowerCase()) ||
+                b.family.toLowerCase().includes(query.toLowerCase()) ||
+                b.range.toLowerCase().includes(query.toLowerCase())
+            );
+            
+            results.innerHTML = filtered.map(bird => `
+                <div class="glass-card p-4 rounded-xl cursor-pointer hover:bg-white/10 transition flex items-center gap-4" onclick="openModal(${bird.id}); toggleSearch();">
+                    <img src="${bird.image}" class="w-16 h-16 rounded-lg object-cover" alt="${bird.name}">
+                    <div>
+                        <h4 class="font-bold">${bird.name}</h4>
+                        <p class="text-sm text-gray-400">${bird.family} • ${bird.scientific}</p>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Modal Functions
+        function openModal(id) {
+            currentBird = birds.find(b => b.id === id);
+            if (!currentBird) return;
+            
+            document.getElementById('modalImage').src = currentBird.image;
+            document.getElementById('modalName').textContent = currentBird.name;
+            document.getElementById('modalScientific').textContent = currentBird.scientific;
+            document.getElementById('modalFamily').textContent = currentBird.family;
+            document.getElementById('modalSize').textContent = currentBird.size.charAt(0).toUpperCase() + currentBird.size.slice(1);
+            document.getElementById('modalHabitat').textContent = currentBird.habitat;
+            document.getElementById('modalRange').textContent = currentBird.range;
+            document.getElementById('modalDiet').textContent = currentBird.diet;
+            document.getElementById('modalWingspan').textContent = currentBird.wingspan;
+            document.getElementById('modalFact').textContent = currentBird.fact;
+            
+            const tagsContainer = document.getElementById('modalTags');
+            tagsContainer.innerHTML = currentBird.tags.map(tag => 
+                `<span class="px-3 py-1 rounded-full bg-white/10 text-xs text-gray-300">#${tag}</span>`
+            ).join('');
+            
+            document.getElementById('birdModal').classList.add('active');
+            document.body.style.overflow = 'hidden';
+            
+            // Reset audio
+            stopAudio();
+        }
+
+        function closeModal(event) {
+            if (!event || event.target.id === 'birdModal' || event.target.closest('button')) {
+                document.getElementById('birdModal').classList.remove('active');
+                document.body.style.overflow = '';
+                stopAudio();
+            }
+        }
+
+        // Audio Functions
+        function toggleBirdSound() {
+            if (audioPlaying) {
+                stopAudio();
+            } else {
+                playAudio();
+            }
+        }
+
+        function playAudio() {
+            if (!currentBird) return;
+            
+            audioPlaying = true;
+            const btn = document.getElementById('audioBtn');
+            const wave = document.getElementById('soundWave');
+            const icon = document.getElementById('playIcon');
+            const text = document.getElementById('playText');
+            const status = document.getElementById('audioStatus');
+            
+            btn.classList.add('playing', 'play-pulse');
+            wave.classList.remove('hidden');
+            icon.className = 'fas fa-stop';
+            text.textContent = 'Stop';
+            status.textContent = 'Playing bird call...';
+            
+            // Generate sound based on bird family
+            generateBirdSound(currentBird.family);
+            
+            // Auto stop after 3 seconds
+            audioInterval = setTimeout(() => {
+                if (audioPlaying) stopAudio();
+            }, 3000);
+        }
+
+        function stopAudio() {
+            audioPlaying = false;
+            const btn = document.getElementById('audioBtn');
+            const wave = document.getElementById('soundWave');
+            const icon = document.getElementById('playIcon');
+            const text = document.getElementById('playText');
+            const status = document.getElementById('audioStatus');
+            
+            if (btn) {
+                btn.classList.remove('playing', 'play-pulse');
+                wave.classList.add('hidden');
+                icon.className = 'fas fa-play';
+                text.textContent = 'Play Call';
+                status.textContent = 'Listen to bird call';
+            }
+            
+            if (audioInterval) {
+                clearTimeout(audioInterval);
+                audioInterval = null;
+            }
+            
+            // Stop any playing audio
+            if (currentOscillator) {
+                try {
+                    currentOscillator.stop();
+                } catch(e) {}
+                currentOscillator = null;
+            }
+        }
+
+        function playRandomCall() {
+            const randomBird = birds[Math.floor(Math.random() * birds.length)];
+            openModal(randomBird.id);
+            setTimeout(() => playAudio(), 500);
+        }
+
+        // Counter Animation
+        function animateCounters() {
+            const counters = document.querySelectorAll('.stat-number');
+            counters.forEach(counter => {
+                const target = parseInt(counter.getAttribute('data-target'));
+                const increment = target / 50;
+                let current = 0;
+                
+                const updateCounter = () => {
+                    if (current < target) {
+                        current += increment;
+                        counter.textContent = Math.ceil(current).toLocaleString();
+                        requestAnimationFrame(updateCounter);
+                    } else {
+                        counter.textContent = target.toLocaleString();
+                    }
+                };
+                
+                // Start when in view
+                const observer = new IntersectionObserver((entries) => {
+                    if (entries[0].isIntersecting) {
+                        updateCounter();
+                        observer.disconnect();
+                    }
+                });
+                observer.observe(counter);
+            });
+        }
+
+        // Parallax Effect
+        function setupParallax() {
+            window.addEventListener('scroll', () => {
+                const scrolled = window.pageYOffset;
+                const parallax = document.querySelector('.hero-parallax');
+                if (parallax) {
+                    parallax.style.transform = `translateY(${scrolled * 0.5}px)`;
+                }
+            });
+        }
+
+        function scrollToGallery() {
+            document.getElementById('gallery').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        // Keyboard shortcuts
+        function setupKeyboardShortcuts() {
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape') {
+                    closeModal();
+                    const searchOverlay = document.getElementById('searchOverlay');
+                    if (!searchOverlay.classList.contains('hidden')) {
+                        toggleSearch();
+                    }
+                }
+                if (e.key === '/' && document.activeElement.tagName !== 'INPUT') {
+                    e.preventDefault();
+                    toggleSearch();
+                }
+                if (e.key === ' ' && currentBird && document.getElementById('birdModal').classList.contains('active')) {
+                    e.preventDefault();
+                    toggleBirdSound();
+                }
+            });
+        }
+    </script>
+</body>
+</html>
